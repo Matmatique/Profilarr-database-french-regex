@@ -36,15 +36,10 @@ clone) : le dépôt est public.
 
 ## Intégrer les mises à jour de Jojont54
 
-1. `git fetch upstream` ; nouveaux commits : `git log stable..upstream/stable`.
-2. Analyse : résumer les commits, compiler la base avant et après fusion
-   (`outils/compiler.py`), comparer les scores de nos profils, repérer les
-   tweaks qui échouent ou ne changent plus rien.
-3. Après accord de l'utilisateur : `git merge upstream/stable`, push.
-   Profilarr récupère le dépôt toutes les heures et synchronise.
-
-À transformer en skill (`.claude/skills/`) une fois le premier passage fait
-à la main.
+Skill `mise-a-jour-jojont54` (`.claude/skills/`) : nouveaux commits
+d'`upstream/stable`, résumé, effet sur nos profils (`outils/comparer.py`),
+tweaks à adapter, puis fusion et push après accord de l'utilisateur.
+Profilarr récupère le dépôt toutes les heures et synchronise.
 
 ## Profils
 
@@ -114,14 +109,18 @@ Profilarr, profils attribués) relève de l'installation : voir le chantier
 
 - `python outils/compiler.py` : rejoue schéma, `ops/` et `tweaks/` dans
   une base SQLite en mémoire (comme Profilarr), s'arrête à la première
-  erreur et peut écrire le résultat (`--sortie base.db`) pour comparer les
-  profils.
+  erreur et peut écrire le résultat (`--sortie base.db`) ; signale les
+  instructions de `tweaks/` qui ne touchent plus aucune ligne.
+- `python outils/comparer.py [référence]` : nos profils avant et après
+  fusion de `upstream/stable` (ou de la référence), sans toucher à la
+  copie de travail.
 - `python outils/scores.py "<nom de release>"` : score du nom dans nos
   profils, formats évalués d'après la base compilée, nom analysé par
   Radarr (`--arr sonarr` pour Sonarr) ; `--langues French,English` impose
   les langues vues sur un indexeur français ou à l'import. Variables
-  `RADARR_URL`, `RADARR_API_KEY`, `SONARR_URL`, `SONARR_API_KEY` ; module
-  Python `regex`.
+  `RADARR_URL`, `RADARR_API_KEY`, `SONARR_URL`, `SONARR_API_KEY`
+  (variables d'environnement utilisateur, jamais lues dans les
+  `config.xml` des serveurs) ; module Python `regex`.
 - `python outils/scores.py --verifier` : sur des releases synthétiques
   (chaque qualité active, codecs, marqueurs, bonus), la qualité ne doit
   jamais faire passer une langue devant une autre. Doit afficher

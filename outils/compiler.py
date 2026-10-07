@@ -3,7 +3,9 @@
 Rejoue dans une base SQLite en mémoire les couches lues par Profilarr :
 schéma (cloné, voir plus bas), base (`ops/`), puis nos `tweaks/`, chaque
 dossier trié par le numéro en tête des noms de fichiers. S'arrête à la
-première erreur, en nommant le fichier fautif.
+première erreur, en nommant le fichier fautif. Signale les instructions de
+`tweaks/` qui ne touchent aucune ligne (format ou profil de Jojont54
+renommé ou retiré) : le tweak ne s'applique plus.
 
     python outils/compiler.py                    compile et liste les profils
     python outils/compiler.py --sortie base.db   écrit aussi le résultat
@@ -59,13 +61,39 @@ def compiler(racine: Path) -> sqlite3.Connection:
             return ligne[0]
         db.create_function(fonction, 1, chercher)
 
-    for f in fichiers(schema(racine)) + [f for c in COUCHES for f in fichiers(racine / c)]:
+    for f in fichiers(schema(racine)) + [f for c in COUCHES[:-1] for f in fichiers(racine / c)]:
         try:
             db.executescript(f.read_text(encoding="utf-8"))
         except sqlite3.Error as e:
             sys.exit(f"ERREUR dans {f} : {e}")
+    # Nos tweaks, instruction par instruction, pour signaler celles qui ne
+    # touchent aucune ligne (un UPDATE à la même valeur compte comme touché).
+    for f in fichiers(racine / COUCHES[-1]):
+        for numero, instruction in instructions(f.read_text(encoding="utf-8")):
+            avant = db.total_changes
+            try:
+                db.execute(instruction)
+            except sqlite3.Error as e:
+                sys.exit(f"ERREUR dans {f}, ligne {numero} : {e}")
+            if db.total_changes == avant:
+                MUETTES.append(f"{f.relative_to(racine)}, ligne {numero}")
     db.commit()
     return db
+
+
+MUETTES: list[str] = []
+
+
+def instructions(texte: str):
+    """(numéro de ligne, instruction) de chaque instruction SQL du texte."""
+    tampon, debut = "", None
+    for numero, ligne in enumerate(texte.splitlines(), 1):
+        if debut is None and ligne.strip() and not ligne.strip().startswith("--"):
+            debut = numero
+        tampon += ligne + "\n"
+        if debut is not None and sqlite3.complete_statement(tampon):
+            yield debut, tampon
+            tampon, debut = "", None
 
 
 def main():
@@ -80,6 +108,8 @@ def main():
         db.execute("VACUUM INTO ?", (str(args.sortie),))
     for (nom,) in db.execute("SELECT name FROM quality_profiles ORDER BY name"):
         print(nom)
+    for m in MUETTES:
+        print(f"ATTENTION : instruction sans effet, {m}", file=sys.stderr)
 
 
 if __name__ == "__main__":

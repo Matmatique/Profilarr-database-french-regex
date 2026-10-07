@@ -46,9 +46,7 @@ clone) : le dépôt est public.
 À transformer en skill (`.claude/skills/`) une fois le premier passage fait
 à la main.
 
-## Objectifs
-
-**Profils visés** (noms à confirmer) :
+## Profils
 
 | Profil | Base Jojont54 | Langue |
 |---|---|---|
@@ -57,55 +55,60 @@ clone) : le dépôt est public.
 | 4K Cinéma | 2160p Quality FR | MULTi > VO > VF |
 | Compact · VF | 1080p Compact FR (HDLight) | MULTi > VF > VO |
 | Compact · VO | 1080p Compact FR (HDLight) | MULTi > VO > VF |
-| Anime | Anime 1080p FR | MULTi > VOSTFR > VF |
+| Anime | Anime 1080p FR | MULTi > VOSTFR > VO > VF |
 
-Écran cible : OLED 4K, Dolby Vision et HDR10, **pas de HDR10+** (bonus
-inutile). Pas de remux. La piste audio est choisie à la lecture, série par
-série : une version MULTi convient toujours, la variante VF/VO ne joue que
-sans MULTi.
+Écran principal : OLED 4K, Dolby Vision et HDR10, **pas de HDR10+** (bonus
+inutile). D'autres personnes regardent sur des installations moins
+poussées : Dolby Vision sans repli HDR10, AV1, VP9 et VVC restent rejetés.
+Pas de remux. La piste audio est choisie à la lecture, série par série :
+une version MULTi convient toujours, la variante VF/VO ne joue que sans
+MULTi.
 
-**A. La langue avant la qualité.** Les profils de la base classent la
-qualité par score de format (20 000 à 960 000) et ne font que pénaliser la
-langue (VF −50 000, VOSTFR −200 000, VO seule interdite par
-« French Missing ») : une VF 1080p bat une MULTi 720p. Passer la langue en
-paliers dominants (MULTi +2 000 000, langue préférée +1 000 000, l'autre
-0), qualité et bonus restant sous 1 000 000. Autoriser la VO seule.
-Garder toutes les qualités dans un seul groupe (sinon l'ordre des qualités
-passe avant les scores).
+Tweaks (le détail est en tête de chaque fichier) :
 
-**B. Langues fiables à l'import.** Constaté dans Sonarr/Radarr (code de
+- `10.profils.sql` : les six profils, copiés de ceux de Jojont54 à chaque
+  compilation ;
+- `20.langue.sql` : **la langue avant la qualité**. Jojont54 ne fait que
+  pénaliser la langue (une VF 1080p bat une MULTi 720p) et interdit la VO
+  seule. Ici, paliers de langue espacés de 10 000 000 (MULTi 20 000 000,
+  langue préférée 10 000 000, l'autre 0), qualité et bonus de Jojont54
+  restant sous 1 000 000. VFQ rejetée, sauf œuvre d'origine francophone ;
+- `30.rejets.sql` : **une release médiocre plutôt que rien**. Les rejets
+  de Jojont54 deviennent des replis (-1 000 000, en dernier dans le palier
+  de langue), sauf les cas rédhibitoires (3D, CAM, remux, codecs
+  illisibles…), rejetés (-100 000 000). Score minimum -9 000 000 : les
+  releases sans palier de qualité passent aussi, en dernier ;
+- `40.mises-a-niveau.sql` : arrêt une fois la MULTi au palier de qualité
+  visé, gain minimum de 20 000 (Jojont54 : seuil jamais atteint, gain de
+  1, chaque petit bonus relançant un téléchargement) ;
+- `50.interface.sql` : modifications faites auparavant dans l'interface de
+  Profilarr (« 2160p WEB-DL » à 0 dans « 2160p Compact FR »).
+
+**Langues fiables à l'import.** Constaté dans Sonarr/Radarr (code de
 `AggregateLanguage` et de `CustomFormatCalculationService`) :
 - à l'import, les langues viennent du nom du fichier, du dossier, du
   torrent, puis **des pistes audio** (MediaInfo), la dernière source non
   vide l'emportant ; une piste `und` est ignorée ;
+- langue inconnue = langue originale de l'œuvre (recherche comme import) ;
 - le nom testé par les formats est celui de la release si Sonarr l'a
   gardé, sinon celui du fichier (cas des packs de saison) ;
-- « French Missing » ne regarde en pratique que le nom : sans marqueur
-  français dans le nom du fichier, −999 999 même avec une piste française.
+- conditions d'un même type : toutes les obligatoires, et au moins une
+  satisfaite, une négation satisfaite comptant. Une condition facultative
+  à côté d'une négation obligatoire ne sert donc à rien.
 
-Cas typique : un pack de saison `…S03.MULTI…`, vu FR + VO à la recherche,
-n'a plus que la VO à l'import (piste française en `und`, fichiers sans
-`MULTI` dans le nom) ; vu comme une mise à niveau, il reste bloqué en
-« Not a Custom Format upgrade » et doit être ignoré à la main. Fonder les
-formats de langue sur la condition de langue (réglage « Multi Languages »
-des indexeurs FR à la recherche, pistes audio à l'import), le nom ne
-servant que de complément ; la VFQ reste détectée par le nom.
-
-**C. Mises à niveau raisonnables.** Seuil d'arrêt aujourd'hui à 1 000 000
-(jamais atteint) et gain minimum de 1 : chaque petit gain relance un
-téléchargement. Viser un seuil réaliste (MULTi + palier de qualité cible)
-et un gain minimum de 20 000 à 50 000.
+D'où des formats de langue fondés sur les langues détectées (réglage
+« Multi Languages » des indexeurs FR à la recherche, pistes audio à
+l'import), le nom ne servant que de complément. Limite connue : un pack de
+saison `…S03.MULTI…` dont la piste française est en `und` et les fichiers
+sans `MULTI` dans le nom n'a plus que la VO à l'import ; vu comme une mise
+à niveau, il reste bloqué en « Not a Custom Format upgrade ».
 
 **Transition** : avec la langue dominante, les fichiers en VF seule
 deviendront améliorables en MULTi. Encadrer la bascule (recherches de mise
 à niveau de Profilarr suspendues au début) pour éviter une vague de
-téléchargements.
-
-**À reprendre de l'interface de Profilarr dans `tweaks/`** : les
-modifications locales actuelles de cette base (score de « 2160p WEB-DL »
-ramené à 0 dans « 2160p Compact FR » pour Radarr et Sonarr). Le reste de
-la bascule (autres bases liées dans Profilarr, profils attribués) relève de
-l'installation : voir le chantier « Profils de qualité » du dépôt `stacks`.
+téléchargements. Le reste de la bascule (autres bases liées dans
+Profilarr, profils attribués) relève de l'installation : voir le chantier
+« Profils de qualité » du dépôt `stacks`.
 
 ## Tests
 
@@ -113,6 +116,16 @@ l'installation : voir le chantier « Profils de qualité » du dépôt `stacks`.
   une base SQLite en mémoire (comme Profilarr), s'arrête à la première
   erreur et peut écrire le résultat (`--sortie base.db`) pour comparer les
   profils.
+- `python outils/scores.py "<nom de release>"` : score du nom dans nos
+  profils, formats évalués d'après la base compilée, nom analysé par
+  Radarr (`--arr sonarr` pour Sonarr) ; `--langues French,English` impose
+  les langues vues sur un indexeur français ou à l'import. Variables
+  `RADARR_URL`, `RADARR_API_KEY`, `SONARR_URL`, `SONARR_API_KEY` ; module
+  Python `regex`.
+- `python outils/scores.py --verifier` : sur des releases synthétiques
+  (chaque qualité active, codecs, marqueurs, bonus), la qualité ne doit
+  jamais faire passer une langue devant une autre. Doit afficher
+  « 0 écart(s) », à vérifier après chaque mise à jour de Jojont54.
 - Sonarr et Radarr, en lecture seule : `GET /api/v3/parse?title=…`
   (formats reconnus pour un nom de release, comme à la recherche) et
   `GET /api/v3/manualimport?folder=…` (langues, formats et score calculés

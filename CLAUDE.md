@@ -77,7 +77,10 @@ Tweaks (le détail est en tête de chaque fichier) :
   visé, gain minimum de 20 000 (Jojont54 : seuil jamais atteint, gain de
   1, chaque petit bonus relançant un téléchargement) ;
 - `50.interface.sql` : modifications faites auparavant dans l'interface de
-  Profilarr (« 2160p WEB-DL » à 0 dans « 2160p Compact FR »).
+  Profilarr (« 2160p WEB-DL » à 0 dans « 2160p Compact FR ») ;
+- `60.correctifs.sql` : erreurs de la base de Jojont54, à retirer quand il
+  les aura corrigées (formats « … Size > N GiB » sans maximum, refusés par
+  Sonarr et Radarr).
 
 **Langues fiables à l'import.** Constaté dans Sonarr/Radarr (code de
 `AggregateLanguage` et de `CustomFormatCalculationService`) :

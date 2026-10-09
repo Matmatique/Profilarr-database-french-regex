@@ -9,10 +9,13 @@
 -- Compact : le HDLight reste préféré au téléchargement, mais un fichier
 -- MULTi déjà correct (WEB-DL ou encode de Blu-ray 1080p) n'est pas remplacé
 -- pour gagner quelques Go (décision du 9 octobre 2026).
+-- 4K · VF et 4K · VO : même principe, le WEB-DL 2160p reste préféré au
+-- téléchargement, mais un encode de Blu-ray 2160p MULTi en place
+-- (4KLight compris) n'est pas remplacé (même jour).
 
 WITH seuils(profil, seuil) AS (VALUES
-    ('4K · VF', 20920000),       -- MULTi + 2160p WEB-DL HEVC
-    ('4K · VO', 20920000),
+    ('4K · VF', 20905000),       -- MULTi + encode de Blu-ray 2160p HEVC
+    ('4K · VO', 20905000),
     ('4K Cinéma', 20940000),     -- MULTi + 2160p Bluray HEVC
     ('Compact · VF', 20850000),  -- MULTi + 1080p WEB-DL AVC, pénalité de taille comprise
     ('Compact · VO', 20850000),
@@ -51,3 +54,15 @@ INSERT INTO condition_patterns (custom_format_name, condition_name, regular_expr
 INSERT INTO quality_profile_custom_formats (quality_profile_name, custom_format_name, arr_type, score) VALUES
     ('Compact · VF', '1080p Bluray (encode)', 'all', 860000),
     ('Compact · VO', '1080p Bluray (encode)', 'all', 860000);
+
+-- 4K · VF et 4K · VO : Jojont54 ne note que le WEB-DL 2160p (« 2160p
+-- Balanced FR ») et pénalise le 4KLight. Un encode de Blu-ray 2160p HEVC
+-- vaut 905 000, sous le WEB-DL HEVC (920 000) et au-dessus d'un 1080p
+-- Bluray, bonus compris (890 000 + 14 000 au plus : équipe, DV, IMAX,
+-- édition, DTS:X…) ; plus de pénalité 4KLight.
+INSERT INTO quality_profile_custom_formats (quality_profile_name, custom_format_name, arr_type, score) VALUES
+    ('4K · VF', '2160p Bluray HEVC', 'all', 905000),
+    ('4K · VO', '2160p Bluray HEVC', 'all', 905000);
+
+UPDATE quality_profile_custom_formats SET score = 0
+WHERE quality_profile_name IN ('4K · VF', '4K · VO') AND custom_format_name = '4KLight';

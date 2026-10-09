@@ -78,7 +78,9 @@ Tweaks (le détail est en tête de chaque fichier) :
   1, chaque petit bonus relançant un téléchargement). Compact s'arrête dès
   un WEB-DL ou un encode de Blu-ray 1080p MULTi (format « 1080p Bluray
   (encode) ») : le HDLight reste préféré au téléchargement, sans remplacer
-  un fichier correct. 4K Cinéma vise bien le Blu-ray UHD ;
+  un fichier correct. De même, 4K · VF et 4K · VO
+  s'arrêtent dès un encode de Blu-ray 2160p MULTi (4KLight compris), le
+  WEB-DL 2160p restant préféré. 4K Cinéma vise bien le Blu-ray UHD ;
 - `50.interface.sql` : modifications faites auparavant dans l'interface de
   Profilarr (« 2160p WEB-DL » à 0 dans « 2160p Compact FR ») ;
 - `60.correctifs.sql` : erreurs de la base de Jojont54, à retirer quand il

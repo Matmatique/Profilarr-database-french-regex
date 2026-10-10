@@ -80,7 +80,10 @@ Tweaks (le détail est en tête de chaque fichier) :
   (encode) ») : le HDLight reste préféré au téléchargement, sans remplacer
   un fichier correct. De même, 4K · VF et 4K · VO
   s'arrêtent dès un encode de Blu-ray 2160p MULTi (4KLight compris), le
-  WEB-DL 2160p restant préféré. 4K Cinéma vise bien le Blu-ray UHD ;
+  WEB-DL 2160p restant préféré. 4K Cinéma vise bien le Blu-ray UHD.
+  Dans les profils 4K, une 2160p sans codec dans le nom (épisodes d'un
+  pack) vaut un encode de Blu-ray 2160p, et toutes les sources 1080p ont le
+  même score : un 1080p ne remplace plus un autre 1080p en attendant la 4K ;
 - `50.interface.sql` : modifications faites auparavant dans l'interface de
   Profilarr (« 2160p WEB-DL » à 0 dans « 2160p Compact FR ») ;
 - `60.correctifs.sql` : erreurs de la base de Jojont54, à retirer quand il

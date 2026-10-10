@@ -66,3 +66,37 @@ INSERT INTO quality_profile_custom_formats (quality_profile_name, custom_format_
 
 UPDATE quality_profile_custom_formats SET score = 0
 WHERE quality_profile_name IN ('4K · VF', '4K · VO') AND custom_format_name = '4KLight';
+
+-- Profils 4K : le nom de fichier ne dit pas toujours le codec (épisodes
+-- d'un pack de saison, nommés « Série S01E01 - Titre.mkv »), et Sonarr juge
+-- alors le fichier sur ce nom : « 2160p WEB-DL HEVC » ou « 2160p Bluray
+-- HEVC » ne se déclenchent pas, et une 4K retombe sous le 1080p en place
+-- (constaté le 10 octobre 2026 sur un pack de South Park). Une 2160p sans
+-- codec dans le nom vaut 905 000, comme un encode de Blu-ray 2160p.
+INSERT INTO custom_formats (name, description) VALUES
+    ('2160p (codec absent du nom)', '2160p dont le nom ne cite ni HEVC ni x264 (fichiers d''un pack de saison) : profils 4K.');
+
+INSERT INTO custom_format_conditions (custom_format_name, name, type, negate, required) VALUES
+    ('2160p (codec absent du nom)', '2160p', 'resolution', 0, 1),
+    ('2160p (codec absent du nom)', 'Sans HEVC', 'release_title', 1, 1),
+    ('2160p (codec absent du nom)', 'Sans x264', 'release_title', 1, 1);
+
+INSERT INTO condition_resolutions (custom_format_name, condition_name, resolution) VALUES
+    ('2160p (codec absent du nom)', '2160p', '2160p');
+INSERT INTO condition_patterns (custom_format_name, condition_name, regular_expression_name) VALUES
+    ('2160p (codec absent du nom)', 'Sans HEVC', 'HEVC'),
+    ('2160p (codec absent du nom)', 'Sans x264', 'x264');
+
+INSERT INTO quality_profile_custom_formats (quality_profile_name, custom_format_name, arr_type, score) VALUES
+    ('4K · VF', '2160p (codec absent du nom)', 'all', 905000),
+    ('4K · VO', '2160p (codec absent du nom)', 'all', 905000),
+    ('4K Cinéma', '2160p (codec absent du nom)', 'all', 905000);
+
+-- Profils 4K : toutes les sources 1080p au même score (Jojont54 : Bluray
+-- 890 000, WEB-DL 860 000, WEBRip 850 000). En attendant la 4K, un 1080p
+-- ne remplace plus un autre 1080p, sauf pour la langue (constaté le
+-- 10 octobre 2026 : WEB-DL 1080p remplacé par un Blu-ray 1080p). 880 000
+-- laisse le 1080p sous le seuil de la 4K, bonus compris (20 000 au plus).
+UPDATE quality_profile_custom_formats SET score = 880000
+WHERE quality_profile_name IN ('4K · VF', '4K · VO', '4K Cinéma')
+  AND custom_format_name IN ('1080p Bluray', '1080p WEB-DL', '1080p WEBRip');

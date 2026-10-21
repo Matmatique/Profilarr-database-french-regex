@@ -88,7 +88,8 @@ Tweaks (le détail est en tête de chaque fichier) :
   Profilarr (« 2160p WEB-DL » à 0 dans « 2160p Compact FR ») ;
 - `60.correctifs.sql` : erreurs de la base de Jojont54, à retirer quand il
   les aura corrigées (formats « … Size > N GiB » sans maximum, refusés par
-  Sonarr et Radarr).
+  Sonarr et Radarr ; Full Disc qui laissait passer les images disque
+  HEVC, Sonarr n'ayant pas de qualité BR-DISK).
 
 **Langues fiables à l'import.** Constaté dans Sonarr/Radarr (code de
 `AggregateLanguage` et de `CustomFormatCalculationService`) :
